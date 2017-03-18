@@ -72,7 +72,7 @@ class MiaowuBot(Plugin):
         message_content = message['content']
         if self.reply_data.get(gnumber) is None:
             self.reply_data[gnumber] = dict()
-        for key in self.reply_data[gnumber].keys():
+        for key in sorted(self.reply_data[gnumber].keys(), key=len, reverse=True):
             if key in message_content:
                 all_reply = self.reply_data[gnumber][key]
                 if len(all_reply) > 0:
