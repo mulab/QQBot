@@ -7,11 +7,13 @@ import sys
 from flask import Flask, jsonify
 from flask import request
 
-app = Flask(__name__)
-app.config['JSON_AS_ASCII'] = False
-
 import logging
 from logging.handlers import TimedRotatingFileHandler
+
+import redis
+
+app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
 
 
 def create_rotating_log(path='qqbot.log', level=logging.INFO):
@@ -41,28 +43,18 @@ plugins_priority = []
 
 plugins_reverse = dict()
 
-valid_group = set()
-bot_records = set()
-admin = 464106231
+pool = None
+database = None
 
 
 def load_config(config_file="config.json"):
-    global valid_group, bot_records, admin
+    global connection_pool, database
     if os.path.isfile(config_file):
         with open(config_file, 'r') as f:
             config = json.load(f)
-            if config.get("valid_group") is not None:
-                valid_group = set(config["valid_group"])
-            else:
-                valid_group = {290911140, 562286586, 147670798}
-            if config.get("bot_records") is not None:
-                bot_records = set(config["bot_records"])
-            else:
-                bot_records = {3071375118, 2119357014, 1429440294}
-            if config.get("admin") is not None:
-                admin = config["admin"]
-            else:
-                admin = 464106231
+            if config.get("redis") is not None:
+                pool = redis.ConnectionPool(host=config.get("redis"), port=6379, db=0)
+                database = redis.StrictRedis(connection_pool=pool)
 
 
 def load_plugins():
@@ -103,16 +95,6 @@ def load_plugin(plugin_name):
     return "Added"
 
 
-def backup_config(config_file="config.json"):
-    config = dict()
-    with open(config_file, 'r') as f:
-        config = json.load(f)
-    with open(config_file, 'w') as f:
-        config['valid_group'] = list(valid_group)
-        config['bot_records'] = list(bot_records)
-        json.dump(config, f)
-
-
 @app.route('/msgrcv', methods=['GET', 'POST'])
 def message_recieved():
     content = request.json
@@ -122,9 +104,9 @@ def message_recieved():
     if content['type'] == 'group_message':
         gnumber = content['group_uid']
         sender = content['sender_uid']
-        if gnumber not in valid_group:
+        if not database.sismember('valid_group', gnumber):
             return ''
-        if sender in bot_records:
+        if database.sismember('bot_records', sender):
             return ''
         message_content = content['content']
         if message_content.startswith('@miaowu'):
@@ -148,7 +130,7 @@ def message_recieved():
                 return jsonify({"reply": random.choice(replys)})
         return ''
     elif content['type'] == 'message':
-        if content['sender_uid'] == admin:
+        if database.sismember('admin', content['sender_uid']):
             reply = handle_admin_command(content['content'])
             return jsonify({"reply": reply})
 
@@ -157,7 +139,7 @@ def handle_admin_command(message=""):
     try:
         if message.startswith("!addbot"):
             qq = message[len('!addbot'):].strip()
-            bot_records.add(int(qq))
+            database.sadd('bot_records', qq)
             return 'Done! Add {qq} as bot!' % int(qq)
         if message.startswith("!load"):
             plugin_name = message[len('!addbot'):].strip()
@@ -168,7 +150,6 @@ def handle_admin_command(message=""):
 
 
 def will_exit(signum, frame):
-    backup_config()
     for p, plugin_array in plugins.items():
         for plugin in plugin_array:
             plugin.exit()
