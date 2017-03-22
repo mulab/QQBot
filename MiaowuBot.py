@@ -6,9 +6,9 @@ import redis
 
 
 class MiaowuBot(Plugin):
-    command_description = "Miaowu Bot Usage:" \
-                          "!add    trigger#reply" \
-                          "!del    trigger#reply" \
+    command_description = "Miaowu Bot Usage:\n" \
+                          "!add    trigger#reply\n" \
+                          "!del    trigger#reply\n" \
                           "!list   trigger"
     priority = 80
 
@@ -84,7 +84,6 @@ class MiaowuBot(Plugin):
             with open(self.filepath, 'w', encoding='utf8') as f:
                 json.dump(self.reply_data, fp=f, ensure_ascii=False)
             return "backup finished"
-
 
     def get_trigger(self, group_id):
         if self.use_redis:
