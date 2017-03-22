@@ -69,9 +69,12 @@ class MiaowuBot(Plugin):
     def message_received(self, message):
         gnumber = message['group_uid']
         message_content = message['content']
+        replys = []
         for key in self.get_trigger(gnumber):
             if key in message_content:
-                return self.get_ramdom_reply(gnumber, key)
+                replys.append(self.get_ramdom_reply(gnumber, key))
+        if len(replys) > 0:
+            return random.choice(replys)
         return ''
 
     def exit(self):
