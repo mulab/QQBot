@@ -9,7 +9,8 @@ class MiaowuBot(Plugin):
     command_description = "Miaowu Bot Usage:\n" \
                           "!add    trigger#reply\n" \
                           "!del    trigger#reply\n" \
-                          "!list   trigger"
+                          "!list    trigger\n" \
+                          "!trigger    message"
     priority = 80
 
     def __init__(self):
@@ -32,7 +33,7 @@ class MiaowuBot(Plugin):
         return
 
     def supported_commands(self):
-        return ['!add', '!del', '!list']
+        return ['!add', '!del', '!list', '!trigger']
 
     def command_received(self, command, content, messageInfo):
         gnumber = messageInfo['group_uid']
@@ -64,6 +65,14 @@ class MiaowuBot(Plugin):
                 return 'No records for ' + trigger
             reply = "List " + trigger + " :\n" + '\n'.join(messages)
             return reply
+        elif command == '!trigger':
+            message = content.strip()
+            replys = []
+            for key in self.get_trigger(gnumber):
+                if key in message:
+                    replys.append(key)
+            if len(replys) > 0:
+                return "Possible triggers:\n" + '\n'.join(replys)
         return ''
 
     def message_received(self, message):
