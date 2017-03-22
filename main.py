@@ -11,6 +11,7 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 
 import redis
+from plugin import Plugin
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -57,7 +58,55 @@ def load_config(config_file="config.json"):
                 database = redis.StrictRedis(connection_pool=pool)
 
 
+class BasicBot(Plugin):
+    command_description = ""
+    priority = 100
+
+    def load_data(self, data_path="", redis_pool=None):
+        return
+
+    def supported_commands(self):
+        return ["!help", "!cmd"]
+
+    def message_received(self, message):
+        return ''
+
+    def command_received(self, command, content, messageInfo):
+        global plugins
+        if command == '!help':
+            name = content.strip()
+            if name == '':
+                return "Loaded Plugins:\n" + (", ".join(plugins_names))
+            if name == "BasicBot":
+                return ''
+            if name in plugins_names:
+                for priority, ps in plugins.items():
+                    for p in ps:
+                        if type(p).__name__ == name:
+                            return p.command_description
+        elif command == '!cmd':
+            name = content.strip()
+            if name == '':
+                return "All Commands:\n" + "\n".join(plugins_reverse.keys())
+            if plugins_reverse.get(name) is not None:
+                p = plugins_reverse[name]
+                return p.command_description
+        return ''
+
+    def exit(self):
+        return
+
+
 def load_plugins():
+    global plugins, plugins_reverse, commands, plugins_names
+    basic_bot = BasicBot()
+    plugin_commands = basic_bot.supported_commands()
+    for command in plugin_commands:
+        plugins_reverse[command] = basic_bot
+        commands.append(command)
+    plugins[basic_bot.priority] = [basic_bot]
+    plugins_names.add("BasicBot")
+
     load_plugin("MiaowuBot")
     # load_plugin("GirlsDayBot")
     app.logger.info(str(plugins_priority))
