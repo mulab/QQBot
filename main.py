@@ -59,7 +59,7 @@ def load_config(config_file="config.json"):
 
 def load_plugins():
     load_plugin("MiaowuBot")
-    load_plugin("GirlsDayBot")
+    # load_plugin("GirlsDayBot")
     app.logger.info(str(plugins_priority))
     app.logger.info(str(plugins_names))
 
