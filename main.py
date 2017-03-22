@@ -8,6 +8,7 @@ from flask import Flask, jsonify
 from flask import request
 
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
 
 import logging
 from logging.handlers import TimedRotatingFileHandler
