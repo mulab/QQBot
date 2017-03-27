@@ -180,7 +180,7 @@ def message_recieved():
                     plugin = plugins_reverse[t]
                     reply = plugin.command_received(t, command_part[len(t):], content)
                     if reply != '':
-                        return jsonify({"reply": reply})
+                        return handle_return_message(reply, gnumber)
         for priority in plugins_priority:
             possible_plugins = plugins[priority]
             replys = []
@@ -203,9 +203,9 @@ def message_recieved():
 def handle_return_message(reply: str, uid):
     global webqq
     lines = reply.splitlines()
-    if len(lines) > 15:
-        for i in range(0, len(lines), 15):
-            temp_reply = '\n'.join(lines[i:i + 15])
+    if len(lines) > 20:
+        for i in range(0, len(lines), 20):
+            temp_reply = '\n'.join(lines[i:i + 20])
             requests.get("http://{}/openqq/send_group_message".format(webqq), params={'uid': uid, 'content': temp_reply})
         return ''
     else:
