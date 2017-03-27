@@ -164,11 +164,12 @@ def message_recieved():
             return ''
         message_content = content['content']
         if message_content.startswith(prefix):
-            command = message_content[len(prefix):].strip().split(' ')[0]
+            command_part = message_content[len(prefix):].strip()
+            command = command_part.split(' ')[0]
             for t in commands:
                 if command==t:
                     plugin = plugins_reverse[t]
-                    reply = plugin.command_received(t, command[len(t):], content)
+                    reply = plugin.command_received(t, command_part[len(t):], content)
                     if reply != '':
                         return jsonify({"reply": reply})
         for priority in plugins_priority:
