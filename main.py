@@ -35,6 +35,7 @@ def create_rotating_log(path='qqbot.log', level=logging.INFO):
     app.logger.addHandler(handler)
     # return logger
 
+prefix = ""
 
 commands = []
 
@@ -49,13 +50,17 @@ database = None
 
 
 def load_config(config_file="config.json"):
-    global database, pool
+    global database, pool, prefix
     if os.path.isfile(config_file):
         with open(config_file, 'r') as f:
             config = json.load(f)
             if config.get("redis") is not None:
                 pool = redis.ConnectionPool(host=config.get("redis"), port=6379, db=0)
                 database = redis.StrictRedis(connection_pool=pool)
+            if config.get("prefix") is not None:
+                prefix = config.get("prefix")
+            else:
+                prefix = "@miaowu"
 
 
 class BasicBot(Plugin):
@@ -158,10 +163,10 @@ def message_recieved():
         if database.sismember('bot_records', sender):
             return ''
         message_content = content['content']
-        if message_content.startswith('@miaowu'):
-            command = message_content[7:].strip()
+        if message_content.startswith(prefix):
+            command = message_content[len(prefix):].strip().split(' ')[0]
             for t in commands:
-                if command.startswith(t):
+                if command==t:
                     plugin = plugins_reverse[t]
                     reply = plugin.command_received(t, command[len(t):], content)
                     if reply != '':
