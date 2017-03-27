@@ -103,7 +103,7 @@ class ZaoBot(Plugin):
                 qq = data[0].decode()
                 t = data[1]
                 ts = time.strftime('%H:%M', time.localtime(t))
-                name = self.get_user_name(qq)
+                name = self.get_user_name(qq, messageInfo['group_uid'])
                 if name is None:
                     name = "({})".format(qq)
                 message.append("{}. {} , wake up at {}".format(index, name, ts))
