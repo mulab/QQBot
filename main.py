@@ -113,6 +113,7 @@ def load_plugins():
     plugins_names.add("BasicBot")
 
     load_plugin("MiaowuBot")
+    load_plugin("ZaoBot")
     # load_plugin("GirlsDayBot")
     app.logger.info(str(plugins_priority))
     app.logger.info(str(plugins_names))
