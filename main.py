@@ -183,10 +183,11 @@ def message_recieved():
             elif len(replys) > 0:
                 return jsonify({"reply": random.choice(replys)})
         return ''
-    elif content['type'] == 'message':
+    elif content['type'] == 'friend_message':
         if database.sismember('admin', content['sender_uid']):
             reply = handle_admin_command(content['content'])
             return jsonify({"reply": reply})
+    return ''
 
 
 def handle_admin_command(message=""):
@@ -196,7 +197,7 @@ def handle_admin_command(message=""):
             database.sadd('bot_records', qq)
             return 'Done! Add {qq} as bot!' % int(qq)
         if message.startswith("!load"):
-            plugin_name = message[len('!addbot'):].strip()
+            plugin_name = message[len('!load'):].strip()
             return load_plugin(plugin_name)
     except Exception:
         return 'Error!'
