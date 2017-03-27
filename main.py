@@ -49,7 +49,7 @@ database = None
 
 
 def load_config(config_file="config.json"):
-    global connection_pool, database
+    global database, pool
     if os.path.isfile(config_file):
         with open(config_file, 'r') as f:
             config = json.load(f)
@@ -114,7 +114,7 @@ def load_plugins():
 
 
 def load_plugin(plugin_name):
-    global plugins, plugins_reverse, commands, plugins_names
+    global plugins, plugins_reverse, commands, plugins_names, pool
     if plugin_name in plugins_names:
         return "Already exist"
 
@@ -139,7 +139,7 @@ def load_plugin(plugin_name):
         index = bisect.bisect_left(plugins_priority, plugin.priority)
         plugins_priority.insert(index, plugin.priority)
     plugins[plugin.priority].append(plugin)
-    plugin.load_data("data/")
+    plugin.load_data("data/", redis_pool = pool)
     plugins_names.add(plugin_name)
     return "Added"
 
