@@ -13,6 +13,8 @@ from logging.handlers import TimedRotatingFileHandler
 import redis
 from plugin import Plugin
 
+import requests
+
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
@@ -34,6 +36,7 @@ def create_rotating_log(path='qqbot.log', level=logging.INFO):
     handler.setFormatter(formatter)
     app.logger.addHandler(handler)
     # return logger
+
 
 prefix = ""
 
@@ -173,7 +176,7 @@ def message_recieved():
             command_part = message_content[len(prefix):].strip()
             command = command_part.split(' ')[0]
             for t in commands:
-                if command==t:
+                if command == t:
                     plugin = plugins_reverse[t]
                     reply = plugin.command_received(t, command_part[len(t):], content)
                     if reply != '':
@@ -186,15 +189,27 @@ def message_recieved():
                 if reply != '':
                     replys.append(reply)
             if len(replys) == 1:
-                return jsonify({"reply": replys[0]})
+                return handle_return_message(replys[0], gnumber)
             elif len(replys) > 0:
-                return jsonify({"reply": random.choice(replys)})
+                return handle_return_message(random.choice(replys), gnumber)
         return ''
     elif content['type'] == 'friend_message':
         if database.sismember('admin', content['sender_uid']):
             reply = handle_admin_command(content['content'])
             return jsonify({"reply": reply})
     return ''
+
+
+def handle_return_message(reply: str, uid):
+    global webqq
+    lines = reply.splitlines()
+    if len(lines) > 15:
+        for i in range(0, len(lines), 15):
+            temp_reply = '\n'.join(lines[i:i + 15])
+            requests.get("http://{}/openqq/send_group_message".format(webqq), params={'uid': uid, 'content': temp_reply})
+        return ''
+    else:
+        return jsonify({"reply": reply})
 
 
 def handle_admin_command(message=""):
