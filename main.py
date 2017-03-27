@@ -47,13 +47,18 @@ plugins_reverse = dict()
 
 pool = None
 database = None
+webqq = None
 
 
 def load_config(config_file="config.json"):
-    global database, pool, prefix
+    global database, pool, prefix, webqq
     if os.path.isfile(config_file):
         with open(config_file, 'r') as f:
             config = json.load(f)
+            if config.get("webqq") is not None:
+                webqq = config["webqq"]
+            else:
+                webqq = "127.0.0.1:5000"
             if config.get("redis") is not None:
                 pool = redis.ConnectionPool(host=config.get("redis"), port=6379, db=0)
                 database = redis.StrictRedis(connection_pool=pool)
@@ -120,7 +125,7 @@ def load_plugins():
 
 
 def load_plugin(plugin_name):
-    global plugins, plugins_reverse, commands, plugins_names, pool
+    global plugins, plugins_reverse, commands, plugins_names, pool, webqq
     if plugin_name in plugins_names:
         return "Already exist"
 
@@ -145,7 +150,7 @@ def load_plugin(plugin_name):
         index = bisect.bisect_left(plugins_priority, plugin.priority)
         plugins_priority.insert(index, plugin.priority)
     plugins[plugin.priority].append(plugin)
-    plugin.load_data("data/", redis_pool = pool)
+    plugin.load_data("data/", redis_pool=pool, webqq=webqq)
     plugins_names.add(plugin_name)
     return "Added"
 

@@ -2,7 +2,7 @@ class Plugin:
     command_description = "No description"
     priority = 0
 
-    def load_data(self, data_path = "", redis_pool = None):
+    def load_data(self, data_path="", redis_pool=None, webqq="127.0.0.1:5000"):
         return
 
     def supported_commands(self):

@@ -34,8 +34,10 @@ class ZaoBot(Plugin):
         self.day_start_time = None
         self.day_end_time = None
         self.last_update = None
+        self.webqq = "127.0.0.1:5000"
 
-    def load_data(self, data_path="", redis_pool=None):
+    def load_data(self, data_path="", redis_pool=None, webqq=""):
+        self.webqq = webqq
         self.database = redis.StrictRedis(connection_pool=redis_pool)
         if self.database.exists('zao:config'):
             self.day_start = self.database.hget('zao:config', 'day_start')
@@ -117,7 +119,7 @@ class ZaoBot(Plugin):
         if group is None:
             return None
 
-        a = requests.get("http://127.0.0.1:5000/openqq/search_group", params={'uid': group})
+        a = requests.get("http://{}/openqq/search_group".format(self.webqq), params={'uid': group})
         group_infos = a.json()
         try:
             if len(group_infos) > 0:
