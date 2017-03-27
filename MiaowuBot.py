@@ -153,5 +153,6 @@ class MiaowuBot(Plugin):
                 self.reply_data[group_id][trigger].remove(message)
                 if len(self.reply_data[group_id][trigger]) == 0:
                     del self.reply_data[group_id][trigger]
-                    return "Removed"
+                return "Removed"
+            else:
                 return 'Reply not exist'
