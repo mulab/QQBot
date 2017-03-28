@@ -75,7 +75,7 @@ class BasicBot(Plugin):
     command_description = ""
     priority = 100
 
-    def load_data(self, data_path="", redis_pool=None):
+    def load_data(self, data_path="", redis_pool=None, webqq=""):
         return
 
     def supported_commands(self):
