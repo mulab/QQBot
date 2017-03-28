@@ -15,6 +15,7 @@ class MiaowuBot(Plugin):
 
     def __init__(self):
         self.reply_data = dict()
+        self.trigger_data = dict()
         self.use_redis = False
         self.database = None
 
@@ -22,14 +23,19 @@ class MiaowuBot(Plugin):
         if redis_pool is not None:
             self.use_redis = True
             self.database = redis.StrictRedis(connection_pool=redis_pool)
+            all_groups = list(map(bytes.decode, self.database.smembers("valid_group")))
+            for group in all_groups:
+                triggers = set(map(bytes.decode, self.database.smembers('miaowu:{}'.format(group))))
+                self.trigger_data[group] = triggers
             return
-        self.filepath = os.path.join(data_path, "reply_data.json")
-        self.reply_data = dict()
-        if os.path.isfile(self.filepath):
-            with open(self.filepath, 'r', encoding='utf8') as f:
-                temp = json.load(f)
-                for key in temp.keys():
-                    self.reply_data[int(key)] = temp[key]
+        else:
+            self.filepath = os.path.join(data_path, "reply_data.json")
+            self.reply_data = dict()
+            if os.path.isfile(self.filepath):
+                with open(self.filepath, 'r', encoding='utf8') as f:
+                    temp = json.load(f)
+                    for key in temp.keys():
+                        self.reply_data[int(key)] = temp[key]
         return
 
     def supported_commands(self):
@@ -96,7 +102,7 @@ class MiaowuBot(Plugin):
 
     def get_trigger(self, group_id):
         if self.use_redis:
-            return list(map(bytes.decode, self.database.smembers("miaowu:{}".format(group_id))))
+            return self.trigger_data[str(group_id)]
         else:
             if self.reply_data[group_id] is None:
                 self.reply_data[group_id] = dict()
@@ -121,6 +127,7 @@ class MiaowuBot(Plugin):
 
     def add_trigger(self, group_id, trigger, message):
         if self.use_redis:
+            self.trigger_data[str(group_id)].append(trigger)
             self.database.sadd("miaowu:{}".format(group_id), trigger)
             if self.database.sadd("miaowu:{}:{}".format(group_id, trigger), message) == 1:
                 return "Added"
@@ -134,7 +141,7 @@ class MiaowuBot(Plugin):
 
     def del_trigger(self, group_id, trigger, message):
         if self.use_redis:
-            if not self.database.sismember("miaowu:{}".format(group_id), trigger):
+            if trigger not in self.trigger_data[str(group_id)].add(trigger):
                 return 'Trigger not exist'
             reply = ""
             id_trigger_key = "miaowu:{}:{}".format(group_id, trigger)
@@ -143,6 +150,7 @@ class MiaowuBot(Plugin):
             else:
                 reply = "Reply not exist"
             if self.database.scard(id_trigger_key) == 0:
+                self.trigger_data[str(group_id)].remove(trigger)
                 self.database.delete(id_trigger_key)
                 self.database.srem("miaowu:{}".format(group_id), trigger)
             return reply
