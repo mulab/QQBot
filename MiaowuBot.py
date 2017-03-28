@@ -127,7 +127,7 @@ class MiaowuBot(Plugin):
 
     def add_trigger(self, group_id, trigger, message):
         if self.use_redis:
-            self.trigger_data[str(group_id)].append(trigger)
+            self.trigger_data[str(group_id)].add(trigger)
             self.database.sadd("miaowu:{}".format(group_id), trigger)
             if self.database.sadd("miaowu:{}:{}".format(group_id, trigger), message) == 1:
                 return "Added"
@@ -141,7 +141,7 @@ class MiaowuBot(Plugin):
 
     def del_trigger(self, group_id, trigger, message):
         if self.use_redis:
-            if trigger not in self.trigger_data[str(group_id)].add(trigger):
+            if trigger not in self.trigger_data[str(group_id)]:
                 return 'Trigger not exist'
             reply = ""
             id_trigger_key = "miaowu:{}:{}".format(group_id, trigger)
