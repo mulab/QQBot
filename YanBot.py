@@ -15,11 +15,11 @@ class YanBot(Plugin):
 
     def __init__(self):
         # self.database = None
-        self.webqq = ""
+        self.prefix = ""
         self.userinfos = dict()
 
     def load_data(self, data_path="", redis_pool=None, webqq=""):
-        self.webqq = webqq
+        self.prefix = "http://{}/openqq".format(webqq)
         # self.database = redis.StrictRedis(connection_pool=redis_pool)
 
         return
@@ -70,7 +70,7 @@ class YanBot(Plugin):
         return 'received'
 
     def shutup_group_member(self, group_uid, uid):
-        a = requests.get("http://127.0.0.1:5000/openqq/shutup_group_member",
+        a = requests.get(self.prefix + "/shutup_group_member",
                          params={'group_uid': group_uid, 'member_uid': uid, 'time': 60})
         ret = a.json()
         if ret['status'] == 'success':
@@ -78,11 +78,11 @@ class YanBot(Plugin):
         return False
 
     def get_name_in_group(self, group_uid, uid):
-        a = requests.get("http://127.0.0.1:5000/openqq/search_group", params={'uid': group_uid})
+        a = requests.get(self.prefix + "/search_group", params={'uid': group_uid})
         group_infos = a.json()
 
     def refresh_group(self, gnumber):
-        a = requests.get("http://127.0.0.1:5000/openqq/search_group", params={'uid': gnumber})
+        a = requests.get(self.prefix + "/search_group", params={'uid': gnumber})
         group_infos = a.json()
         try:
             if len(group_infos) > 0:
