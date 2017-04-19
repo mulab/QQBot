@@ -164,6 +164,8 @@ def message_recieved():
     if content['post_type'] == 'event':
         print(content)
         return ''
+    if content['post_type'] != 'receive_message':
+        return ''
     if content['type'] == 'group_message':
         gnumber = content['group_uid']
         sender = content['sender_uid']
