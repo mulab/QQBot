@@ -88,9 +88,8 @@ class MiaowuBot(Plugin):
         message_content = message['content']
         replys = []
         for key in self.get_trigger(gnumber):
-			reg_result = re.search(key, message_contnet)
+			reg_result = re.search(key, message_content)
             if reg_result:
-                replys.append()
 				replace_string = self.get_ramdom_reply(gnumber, key)
 				reg_string = reg_result.group()
 				reply_string = re.sub(key, replace_string, reg_string)
