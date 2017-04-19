@@ -3,6 +3,7 @@ import random
 import json
 from plugin import Plugin
 import redis
+import re
 
 
 class MiaowuBot(Plugin):
@@ -53,6 +54,7 @@ class MiaowuBot(Plugin):
             trigger = add_message[0].strip()
             if len(trigger) < 2:
                 return 'Trigger must > 2'
+			
             r = add_message[1].strip()
             print("add", trigger, r)
             return self.add_trigger(gnumber, trigger, r)
@@ -86,8 +88,14 @@ class MiaowuBot(Plugin):
         message_content = message['content']
         replys = []
         for key in self.get_trigger(gnumber):
-            if key in message_content:
-                replys.append(self.get_ramdom_reply(gnumber, key))
+			reg_result = re.search(key, message_contnet)
+            if reg_result:
+                replys.append()
+				replace_string = self.get_ramdom_reply(gnumber, key)
+				reg_string = reg_result.group()
+				reply_string = re.sub(key, replace_string, reg_string)
+				replys.append(reply_string)
+				
         if len(replys) > 0:
             return random.choice(replys)
         return ''
