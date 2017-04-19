@@ -102,7 +102,11 @@ class MiaowuBot(Plugin):
 
     def get_trigger(self, group_id):
         if self.use_redis:
-            return self.trigger_data[str(group_id)]
+            ret = self.trigger_data.get(str(group_id))
+            if ret is None:
+                ret = set(map(bytes.decode, self.database.smembers('miaowu:{}'.format(group_id))))
+                self.trigger_data[str(group_id)] = ret
+            return ret
         else:
             if self.reply_data[group_id] is None:
                 self.reply_data[group_id] = dict()
