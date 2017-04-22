@@ -223,6 +223,9 @@ def handle_admin_command(message=""):
         if message.startswith("!load"):
             plugin_name = message[len('!load'):].strip()
             return load_plugin(plugin_name)
+        if message.startswith("!relogin"):
+            requests.get("http://{}/openqq/relogin".format(webqq))
+            return "Request sent"
     except Exception:
         return 'Error!'
     return 'not recognized command'
