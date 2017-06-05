@@ -51,12 +51,15 @@ plugins_reverse = dict()
 pool = None
 database = None
 webqq = None
+weixin = None
+weixin_mapping = None
 
 
 def load_config(config_file="config.json"):
     global database, pool, prefix, webqq
+    global weixin, weixin_mapping
     if os.path.isfile(config_file):
-        with open(config_file, 'r') as f:
+        with open(config_file, 'r', encoding='utf8') as f:
             config = json.load(f)
             if config.get("webqq") is not None:
                 webqq = config["webqq"]
@@ -69,13 +72,19 @@ def load_config(config_file="config.json"):
                 prefix = config.get("prefix")
             else:
                 prefix = "@miaowu"
+            if config.get("weixin") is not None:
+                weixin = config["weixin"]
+            if config.get("weixin_mapping") is not None:
+                weixin_mapping = config.get("weixin_mapping")
+            else:
+                weixin_mapping = dict()
 
 
 class BasicBot(Plugin):
     command_description = ""
     priority = 100
 
-    def load_data(self, data_path="", redis_pool=None, webqq=""):
+    def load_data(self, **kwargs):
         return
 
     def supported_commands(self):
@@ -121,7 +130,7 @@ def load_plugins():
     plugins_names.add("BasicBot")
 
     load_plugin("MiaowuBot")
-    load_plugin("ZaoBot")
+    load_plugin("RollBot")
     # load_plugin("GirlsDayBot")
     app.logger.info(str(plugins_priority))
     app.logger.info(str(plugins_names))
@@ -204,16 +213,72 @@ def message_recieved():
     return ''
 
 
+@app.route('/wxrcv', methods=['GET', 'POST'])
+def wx_message_recieved():
+    content = request.json
+    # print(content)
+    if content['post_type'] == 'event':
+        print(content)
+        return ''
+    if content['post_type'] != 'receive_message':
+        return ''
+    if content['type'] == 'group_message':
+        gnumber = content['group_id']
+        sender = content['sender_uid']
+        if database.hget('wx_valid_group', gnumber) is None:
+            group_name = content['group']
+            for group_prefix in weixin_mapping:
+                if group_name.startswith(group_prefix):
+                    database.hset('wx_valid_group', gnumber, weixin_mapping[group_prefix])
+                    database.hset('wx_valid_group_reverse', weixin_mapping[group_prefix], gnumber)
+                    break
+            return ''
+        else:
+            content['group_uid'] = int(database.hget('wx_valid_group', gnumber))
+        message_content = content['content']
+        if message_content.startswith('!'):
+            command_part = message_content.strip()
+            command = command_part.split(' ')[0]
+            for t in commands:
+                if command == t:
+                    plugin = plugins_reverse[t]
+                    if not plugin.weixin_enabled():
+                        continue
+                    reply = plugin.command_received(t, command_part[len(t):], content)
+                    if reply != '':
+                        return wx_handle_return_message(reply, gnumber)
+        for priority in plugins_priority:
+            possible_plugins = plugins[priority]
+            replys = []
+            for plugin in possible_plugins:
+                if not plugin.weixin_enabled():
+                    continue
+                reply = plugin.message_received(content)
+                if reply != '':
+                    replys.append(reply)
+            if len(replys) == 1:
+                return wx_handle_return_message(replys[0], gnumber)
+            elif len(replys) > 0:
+                return wx_handle_return_message(random.choice(replys), gnumber)
+        return ''
+    return ''
+
+
 def handle_return_message(reply: str, uid):
     global webqq
     lines = reply.splitlines()
     if len(lines) > 20:
         for i in range(0, len(lines), 20):
             temp_reply = '\n'.join(lines[i:i + 20])
-            requests.get("http://{}/openqq/send_group_message".format(webqq), params={'uid': uid, 'content': temp_reply})
+            requests.get("http://{}/openqq/send_group_message".format(webqq),
+                         params={'uid': uid, 'content': temp_reply})
         return ''
     else:
         return jsonify({"reply": reply})
+
+
+def wx_handle_return_message(reply: str, uid):
+    return jsonify({"reply": reply})
 
 
 def handle_admin_command(message=""):
