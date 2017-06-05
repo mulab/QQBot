@@ -53,6 +53,7 @@ database = None
 webqq = None
 weixin = None
 weixin_mapping = None
+weixin_group_mapping = dict()
 
 
 def load_config(config_file="config.json"):
@@ -215,6 +216,7 @@ def message_recieved():
 
 @app.route('/wxrcv', methods=['GET', 'POST'])
 def wx_message_recieved():
+    global weixin_group_mapping
     content = request.json
     # print(content)
     if content['post_type'] == 'event':
@@ -225,16 +227,20 @@ def wx_message_recieved():
     if content['type'] == 'group_message':
         gnumber = content['group_id']
         sender = content['sender_uid']
-        if database.hget('wx_valid_group', gnumber) is None:
+        if weixin_group_mapping.get(gnumber) is None:
             group_name = content['group']
             for group_prefix in weixin_mapping:
                 if group_name.startswith(group_prefix):
-                    database.hset('wx_valid_group', gnumber, weixin_mapping[group_prefix])
-                    database.hset('wx_valid_group_reverse', weixin_mapping[group_prefix], gnumber)
+                    group_uid = weixin_mapping[group_prefix]
+                    for (key, value) in weixin_group_mapping.items():
+                        if value == group_uid:
+                            del weixin_group_mapping[key]
+                            break
+                    weixin_group_mapping[gnumber] = group_uid
                     break
             return ''
         else:
-            content['group_uid'] = int(database.hget('wx_valid_group', gnumber))
+            content['group_uid'] = weixin_group_mapping[gnumber]
         message_content = content['content']
         if message_content.startswith('!'):
             command_part = message_content.strip()
