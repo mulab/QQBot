@@ -166,6 +166,8 @@ def message_recieved():
         return ''
     if content['post_type'] != 'receive_message':
         return ''
+    if content['sender'] == '昵称未知' and content['sender_uid'] is None:
+        return ''
     if content['type'] == 'group_message':
         gnumber = content['group_uid']
         sender = content['sender_uid']
