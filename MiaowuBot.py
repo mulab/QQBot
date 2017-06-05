@@ -131,6 +131,8 @@ class MiaowuBot(Plugin):
 
     def add_trigger(self, group_id, trigger, message):
         if self.use_redis:
+            if self.trigger_data.get(str(group_id)) is None:
+                self.trigger_data[str(group_id)] = set()
             self.trigger_data[str(group_id)].add(trigger)
             self.database.sadd("miaowu:{}".format(group_id), trigger)
             if self.database.sadd("miaowu:{}:{}".format(group_id, trigger), message) == 1:
