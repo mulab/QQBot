@@ -19,7 +19,10 @@ class MiaowuBot(Plugin):
         self.use_redis = False
         self.database = None
 
-    def load_data(self, data_path="", redis_pool=None, webqq=""):
+    def weixin_enabled(self):
+        return True
+
+    def load_data(self, data_path="", redis_pool=None, **kwargs):
         if redis_pool is not None:
             self.use_redis = True
             self.database = redis.StrictRedis(connection_pool=redis_pool)

@@ -13,7 +13,10 @@ class RollBot(Plugin):
         # self.prefix = ""
         # self.userinfos = dict()
 
-    def load_data(self, data_path="", redis_pool=None, webqq=""):
+    def weixin_enabled(self):
+        return True
+
+    def load_data(self, data_path="", redis_pool=None, **kwargs):
         # self.prefix = "http://{}/openqq".format(webqq)
         # self.database = redis.StrictRedis(connection_pool=redis_pool)
 
