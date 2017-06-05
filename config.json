@@ -1,3 +1,9 @@
 {
-  "redis": "redis"
+  "redis": "redis",
+  "prefix": "@miaowu",
+  "webqq": "127.0.0.1:5000",
+  "weixin": "127.0.0.1:5001",
+  "weixin_mapping": {
+    "群名前缀": 123456789
+  }
 }
