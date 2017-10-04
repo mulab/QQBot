@@ -128,7 +128,7 @@ class MiaowuBot(Plugin):
                 replys.append(reply_string)
         for key in self.get_trigger(gnumber):
             if key in message_content:
-                replys.append(self.get_regex_random_reply(gnumber, key))
+                replys.append(self.get_random_reply(gnumber, key))
         if len(replys) > 0:
             return random.choice(replys)
         return ''
