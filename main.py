@@ -172,7 +172,7 @@ def load_plugin(plugin_name):
 def message_recieved():
     content = request.json
     if content['post_type'] == 'event':
-        print(content)
+        # print(content)
         return ''
     if content['post_type'] != 'receive_message':
         return ''
