@@ -186,6 +186,8 @@ def message_recieved():
         if database.sismember('bot_records', sender):
             return ''
         message_content = content['content']
+        if message_content is None:
+            return ''
         if message_content.startswith(prefix):
             command_part = message_content[len(prefix):].strip()
             command = command_part.split(' ')[0]
