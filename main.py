@@ -204,9 +204,7 @@ def message_recieved():
                 reply = plugin.message_received(content)
                 if reply != '':
                     replys.append(reply)
-            if len(replys) == 1:
-                return handle_return_message(replys[0], gnumber)
-            elif len(replys) > 0:
+            if len(replys) > 0:
                 return handle_return_message(random.choice(replys), gnumber)
         return ''
     elif content['type'] == 'friend_message':
