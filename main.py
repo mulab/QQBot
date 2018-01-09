@@ -169,6 +169,7 @@ def load_plugin(plugin_name):
 @app.route('/msgrcv', methods=['GET', 'POST'])
 def message_recieved():
     content = request.json
+    app.logger.debug(str(content))
     if content['post_type'] == 'event':
         # print(content)
         return ''
@@ -187,6 +188,7 @@ def message_recieved():
                 if gname.startswith(n):
                     content['group_uid'] = weixin_mapping[n]
                     gnumber = weixin_mapping[n]
+                    app.logger.debug("Find mapping: {} to {}".format(gname, gnumber))
         sender = content['sender_uid']
         if not database.sismember('valid_group', gnumber):
             return ''
