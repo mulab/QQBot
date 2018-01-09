@@ -52,7 +52,7 @@ pool = None
 database = None
 webqq = None
 weixin = None
-weixin_mapping = None
+weixin_mapping = dict()
 weixin_group_mapping = dict()
 
 
@@ -180,6 +180,14 @@ def message_recieved():
         return ''
     if content['type'] == 'group_message':
         gnumber = content['group_uid']
+        gid = content['group_id']
+        if gnumber is None:
+            if content['group'] is None:
+                return ''
+            gname = content['group']
+            for n in weixin_mapping:
+                if gname.startswith(n):
+                    content['group_uid'] = weixin_mapping[n]
         sender = content['sender_uid']
         if not database.sismember('valid_group', gnumber):
             return ''
@@ -196,7 +204,7 @@ def message_recieved():
                     plugin = plugins_reverse[t]
                     reply = plugin.command_received(t, command_part[len(t):], content)
                     if reply != '':
-                        return handle_return_message(reply, gnumber)
+                        return handle_return_message(reply, gnumber, gid)
         for priority in plugins_priority:
             possible_plugins = plugins[priority]
             replys = []
@@ -205,9 +213,9 @@ def message_recieved():
                 if reply != '':
                     replys.append(reply)
             if len(replys) == 1:
-                return handle_return_message(replys[0], gnumber)
+                return handle_return_message(replys[0], gnumber, gid)
             elif len(replys) > 0:
-                return handle_return_message(random.choice(replys), gnumber)
+                return handle_return_message(random.choice(replys), gnumber, gid)
         return ''
     elif content['type'] == 'friend_message':
         if database.sismember('admin', content['sender_uid']):
@@ -272,14 +280,16 @@ def wx_message_recieved():
     return ''
 
 
-def handle_return_message(reply: str, uid):
+def handle_return_message(reply: str, uid, id=None):
     global webqq
     lines = reply.splitlines()
+    if id is None:
+        return ''
     if len(lines) > 20:
         for i in range(0, len(lines), 20):
             temp_reply = '\n'.join(lines[i:i + 20])
             requests.get("http://{}/openqq/send_group_message".format(webqq),
-                         params={'uid': uid, 'content': temp_reply})
+                         params={'id': id, 'content': temp_reply})
         return ''
     else:
         return jsonify({"reply": reply})
