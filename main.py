@@ -186,6 +186,7 @@ def message_recieved():
             for n in weixin_mapping:
                 if gname.startswith(n):
                     content['group_uid'] = weixin_mapping[n]
+                    gnumber = weixin_mapping[n]
         sender = content['sender_uid']
         if not database.sismember('valid_group', gnumber):
             return ''
