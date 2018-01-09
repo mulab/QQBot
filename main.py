@@ -1,19 +1,17 @@
 import bisect
 import json
+import logging
 import os
 import random
 import sys
-
-from flask import Flask, jsonify
-from flask import request
-
-import logging
 from logging.handlers import TimedRotatingFileHandler
 
 import redis
-from plugin import Plugin
-
 import requests
+from flask import Flask, jsonify
+from flask import request
+
+from plugin import Plugin
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
